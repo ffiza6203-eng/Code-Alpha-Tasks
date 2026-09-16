@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flashcard Quiz — Study Deck</title>
+<style>
+  :root{
+    --paper:#F6F2E9;
+    --card:#FFFDF7;
+    --ink:#2B2620;
+    --ink-soft:#6E655A;
+    --rule:#DCD3C2;
+    --accent:#8A5C3B;
+    --accent-soft:#EADFCB;
+    --good:#4C7A5E;
+    --danger:#A64B4B;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Iowan Old Style','Palatino Linotype',Georgia,serif;
+    min-height:100vh;
+  }
+  .wrap{
+    max-width:720px;
+    margin:0 auto;
+    padding:48px 24px 80px;
+  }
+  header{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    border-bottom:1px solid var(--rule);
+    padding-bottom:18px;
+    margin-bottom:36px;
+  }
+  h1{
+    font-size:28px;
+    font-weight:600;
+    margin:0;
+    letter-spacing:0.2px;
+  }
+  .deck-count{
+    font-family:Georgia, serif;
+    font-size:14px;
+    color:var(--ink-soft);
+    font-style:italic;
+  }
+  .stage{
+    perspective:1600px;
+    margin-bottom:28px;
+  }
+  .card{
+    position:relative;
+    width:100%;
+    min-height:280px;
+    border-radius:6px;
+    cursor:pointer;
+    transform-style:preserve-3d;
+    transition:transform 0.5s cubic-bezier(.4,.2,.2,1);
+  }
+  .card.flipped{ transform:rotateY(180deg); }
+  .face{
+    position:absolute;
+    inset:0;
+    backface-visibility:hidden;
+    background:var(--card);
+    border:1px solid var(--rule);
+    border-radius:6px;
+    padding:40px;
+    display:flex;
+    flex-direction:column;
+    box-shadow:0 1px 0 var(--rule), 0 12px 24px -18px rgba(0,0,0,0.35);
+  }
+  .face .label{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:1.5px;
+    color:var(--accent);
+    margin-bottom:auto;
+  }
+  .face .content{
+    font-size:22px;
+    line-height:1.5;
+    margin:auto 0;
+    text-align:center;
+    padding:0 8px;
+  }
+  .face .hint{
+    text-align:center;
+    color:var(--ink-soft);
+    font-size:13px;
+    font-style:italic;
+    margin-top:auto;
+  }
+  .back{ transform:rotateY(180deg); background:var(--accent-soft); }
+  .controls{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:14px;
+    margin-bottom:36px;
+  }
+  button{
+    font-family:inherit;
+    cursor:pointer;
+    border:none;
+  }
+  .nav-btn{
+    background:var(--card);
+    border:1px solid var(--rule);
+    color:var(--ink);
+    width:44px;height:44px;
+    border-radius:50%;
+    font-size:18px;
+    display:flex;align-items:center;justify-content:center;
+    transition:background 0.15s, transform 0.15s;
+  }
+  .nav-btn:hover{ background:var(--accent-soft); transform:translateY(-1px); }
+  .nav-btn:disabled{ opacity:0.35; cursor:not-allowed; transform:none; }
+  .show-btn{
+    background:var(--accent);
+    color:#fff;
+    padding:12px 28px;
+    border-radius:24px;
+    font-size:14px;
+    letter-spacing:0.3px;
+  }
+  .show-btn:hover{ background:#754a2e; }
+  .position{
+    text-align:center;
+    color:var(--ink-soft);
+    font-size:13px;
+    margin-bottom:44px;
+    font-style:italic;
+  }
+  .manage{
+    border-top:1px solid var(--rule);
+    padding-top:32px;
+  }
+  .manage h2{
+    font-size:16px;
+    font-weight:600;
+    margin:0 0 16px;
+  }
+  .list{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    margin-bottom:24px;
+  }
+  .list-item{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:var(--card);
+    border:1px solid var(--rule);
+    border-radius:5px;
+    padding:12px 14px;
+    font-size:14px;
+  }
+  .list-item .q{
+    flex:1;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    margin-right:12px;
+  }
+  .icon-btn{
+    background:none;
+    color:var(--ink-soft);
+    font-size:13px;
+    padding:4px 8px;
+    border-radius:4px;
+  }
+  .icon-btn:hover{ background:var(--accent-soft); color:var(--ink); }
+  .icon-btn.danger:hover{ background:#F3E1E1; color:var(--danger); }
+  form.editor{
+    background:var(--card);
+    border:1px solid var(--rule);
+    border-radius:6px;
+    padding:20px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+  form.editor label{
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    color:var(--ink-soft);
+    margin-bottom:4px;
+    display:block;
+  }
+  form.editor textarea{
+    width:100%;
+    font-family:inherit;
+    font-size:15px;
+    padding:10px;
+    border:1px solid var(--rule);
+    border-radius:4px;
+    background:var(--paper);
+    color:var(--ink);
+    resize:vertical;
+    min-height:50px;
+  }
+  form.editor textarea:focus, .add-toggle:focus{ outline:2px solid var(--accent); outline-offset:1px; }
+  .editor-actions{
+    display:flex;
+    gap:10px;
+    margin-top:4px;
+  }
+  .primary-btn{
+    background:var(--good);
+    color:#fff;
+    padding:10px 18px;
+    border-radius:5px;
+    font-size:14px;
+  }
+  .primary-btn:hover{ background:#3d6349; }
+  .ghost-btn{
+    background:transparent;
+    color:var(--ink-soft);
+    padding:10px 18px;
+    border-radius:5px;
+    font-size:14px;
+    border:1px solid var(--rule);
+  }
+  .ghost-btn:hover{ background:var(--accent-soft); }
+  .add-toggle{
+    background:none;
+    border:1px dashed var(--rule);
+    color:var(--accent);
+    width:100%;
+    padding:14px;
+    border-radius:6px;
+    font-size:14px;
+    margin-bottom:16px;
+  }
+  .add-toggle:hover{ background:var(--accent-soft); }
+  .empty{
+    text-align:center;
+    padding:60px 20px;
+    color:var(--ink-soft);
+    font-style:italic;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Flashcard Quiz</h1>
+    <span class="deck-count" id="deckCount"></span>
+  </header>
+
+  <div id="studyArea"></div>
+
+  <div class="manage">
+    <h2>Manage cards</h2>
+    <button class="add-toggle" id="addToggle">+ Add a new flashcard</button>
+    <div id="editorSlot"></div>
+    <div class="list" id="cardList"></div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'flashcards:deck';
+let cards = [];
+let index = 0;
+let flipped = false;
+let editingId = null;
+
+const defaultDeck = [
+  { id: crypto.randomUUID(), q: "What is the capital of France?", a: "Paris" },
+  { id: crypto.randomUUID(), q: "What is the powerhouse of the cell?", a: "The mitochondria" },
+  { id: crypto.randomUUID(), q: "What does HTML stand for?", a: "HyperText Markup Language" }
+];
+
+async function loadCards(){
+  try{
+    const res = await window.storage.get(STORAGE_KEY);
+    cards = res ? JSON.parse(res.value) : defaultDeck;
+  }catch(e){
+    cards = defaultDeck;
+  }
+  if(!cards.length){ cards = []; }
+  render();
+}
+
+async function saveCards(){
+  try{
+    await window.storage.set(STORAGE_KEY, JSON.stringify(cards));
+  }catch(e){
+    console.error('Could not save deck', e);
+  }
+}
+
+function render(){
+  renderStudy();
+  renderList();
+  document.getElementById('deckCount').textContent = cards.length ? `${index+1} of ${cards.length}` : '';
+}
+
+function renderStudy(){
+  const el = document.getElementById('studyArea');
+  if(!cards.length){
+    el.innerHTML = `<div class="empty">No flashcards yet. Add one below to start studying.</div>`;
+    return;
+  }
+  if(index >= cards.length) index = cards.length - 1;
+  const c = cards[index];
+  el.innerHTML = `
+    <div class="stage">
+      <div class="card ${flipped ? 'flipped' : ''}" id="cardEl">
+        <div class="face front">
+          <div class="label">Question</div>
+          <div class="content">${escapeHtml(c.q)}</div>
+          <div class="hint">Click card or press Show Answer</div>
+        </div>
+        <div class="face back">
+          <div class="label">Answer</div>
+          <div class="content">${escapeHtml(c.a)}</div>
+          <div class="hint">Click card to flip back</div>
+        </div>
+      </div>
+    </div>
+    <div class="controls">
+      <button class="nav-btn" id="prevBtn" ${index===0?'disabled':''} aria-label="Previous card">&#8592;</button>
+      <button class="show-btn" id="flipBtn">${flipped ? 'Show Question' : 'Show Answer'}</button>
+      <button class="nav-btn" id="nextBtn" ${index===cards.length-1?'disabled':''} aria-label="Next card">&#8594;</button>
+    </div>
+    <div class="position">Card ${index+1} of ${cards.length}</div>
+  `;
+  document.getElementById('cardEl').addEventListener('click', toggleFlip);
+  document.getElementById('flipBtn').addEventListener('click', (e)=>{ e.stopPropagation(); toggleFlip(); });
+  document.getElementById('prevBtn').addEventListener('click', ()=>{ go(-1); });
+  document.getElementById('nextBtn').addEventListener('click', ()=>{ go(1); });
+}
+
+function toggleFlip(){
+  flipped = !flipped;
+  renderStudy();
+}
+
+function go(dir){
+  const newIndex = index + dir;
+  if(newIndex < 0 || newIndex >= cards.length) return;
+  index = newIndex;
+  flipped = false;
+  render();
+}
+
+function renderList(){
+  const list = document.getElementById('cardList');
+  if(!cards.length){ list.innerHTML = ''; return; }
+  list.innerHTML = cards.map((c, i) => `
+    <div class="list-item">
+      <span class="q">${i+1}. ${escapeHtml(c.q)}</span>
+      <span>
+        <button class="icon-btn" data-edit="${c.id}">Edit</button>
+        <button class="icon-btn danger" data-del="${c.id}">Delete</button>
+      </span>
+    </div>
+  `).join('');
+  list.querySelectorAll('[data-edit]').forEach(btn=>{
+    btn.addEventListener('click', ()=> openEditor(btn.dataset.edit));
+  });
+  list.querySelectorAll('[data-del]').forEach(btn=>{
+    btn.addEventListener('click', ()=> deleteCard(btn.dataset.del));
+  });
+}
+
+function openEditor(id){
+  editingId = id || null;
+  const c = id ? cards.find(x=>x.id===id) : { q:'', a:'' };
+  const slot = document.getElementById('editorSlot');
+  slot.innerHTML = `
+    <form class="editor" id="editorForm">
+      <div>
+        <label for="qInput">Question</label>
+        <textarea id="qInput" required>${escapeHtml(c.q)}</textarea>
+      </div>
+      <div>
+        <label for="aInput">Answer</label>
+        <textarea id="aInput" required>${escapeHtml(c.a)}</textarea>
+      </div>
+      <div class="editor-actions">
+        <button type="submit" class="primary-btn">${id ? 'Save changes' : 'Add flashcard'}</button>
+        <button type="button" class="ghost-btn" id="cancelEdit">Cancel</button>
+      </div>
+    </form>
+  `;
+  document.getElementById('editorForm').addEventListener('submit', handleSave);
+  document.getElementById('cancelEdit').addEventListener('click', closeEditor);
+  document.getElementById('qInput').focus();
+}
+
+function closeEditor(){
+  editingId = null;
+  document.getElementById('editorSlot').innerHTML = '';
+}
+
+async function handleSave(e){
+  e.preventDefault();
+  const q = document.getElementById('qInput').value.trim();
+  const a = document.getElementById('aInput').value.trim();
+  if(!q || !a) return;
+  if(editingId){
+    const c = cards.find(x=>x.id===editingId);
+    c.q = q; c.a = a;
+  }else{
+    cards.push({ id: crypto.randomUUID(), q, a });
+    index = cards.length - 1;
+    flipped = false;
+  }
+  await saveCards();
+  closeEditor();
+  render();
+}
+
+async function deleteCard(id){
+  cards = cards.filter(c=>c.id!==id);
+  if(index >= cards.length) index = Math.max(0, cards.length-1);
+  flipped = false;
+  await saveCards();
+  render();
+}
+
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+document.getElementById('addToggle').addEventListener('click', ()=> openEditor(null));
+
+loadCards();
+</script>
+</body>
+</html>

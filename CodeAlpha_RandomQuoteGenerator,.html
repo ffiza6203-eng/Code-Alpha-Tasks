@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Random Quote Generator</title>
+<style>
+  :root{
+    --bg:#12181B;
+    --panel:#1A2226;
+    --ink:#EDEBE4;
+    --ink-soft:#8A9599;
+    --accent:#D9B44A;
+    --rule:#283236;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:Georgia,'Times New Roman',serif;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+  }
+  .card{
+    max-width:600px;
+    width:100%;
+    background:var(--panel);
+    border:1px solid var(--rule);
+    border-radius:4px;
+    padding:64px 52px;
+    position:relative;
+  }
+  .mark{
+    font-size:64px;
+    line-height:1;
+    color:var(--accent);
+    font-family:Georgia, serif;
+    margin-bottom:8px;
+    opacity:0.85;
+  }
+  .quote-text{
+    font-size:26px;
+    line-height:1.5;
+    margin:0 0 28px;
+    min-height:110px;
+    transition:opacity 0.25s ease;
+  }
+  .quote-author{
+    font-size:15px;
+    color:var(--ink-soft);
+    font-style:italic;
+    margin-bottom:40px;
+  }
+  .quote-author::before{
+    content:"— ";
+  }
+  .row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    border-top:1px solid var(--rule);
+    padding-top:24px;
+  }
+  button{
+    font-family:inherit;
+    cursor:pointer;
+    border:none;
+  }
+  .new-btn{
+    background:var(--accent);
+    color:#1A1508;
+    padding:13px 30px;
+    border-radius:24px;
+    font-size:14px;
+    letter-spacing:0.3px;
+    font-weight:bold;
+    transition:transform 0.15s, background 0.15s;
+  }
+  .new-btn:hover{ background:#e8c968; transform:translateY(-1px); }
+  .new-btn:active{ transform:translateY(0); }
+  .counter{
+    color:var(--ink-soft);
+    font-size:13px;
+  }
+  .fade-out{ opacity:0; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="mark">&#8220;</div>
+  <p class="quote-text" id="quoteText">Loading...</p>
+  <p class="quote-author" id="quoteAuthor"></p>
+  <div class="row">
+    <span class="counter" id="counter"></span>
+    <button class="new-btn" id="newBtn">New Quote</button>
+  </div>
+</div>
+
+<script>
+const quotes = [
+  { text: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
+  { text: "Life is what happens when you're busy making other plans.", author: "John Lennon" },
+  { text: "In the middle of difficulty lies opportunity.", author: "Albert Einstein" },
+  { text: "It is never too late to be what you might have been.", author: "George Eliot" },
+  { text: "The journey of a thousand miles begins with a single step.", author: "Lao Tzu" },
+  { text: "Success is not final, failure is not fatal: it is the courage to continue that counts.", author: "Winston Churchill" },
+  { text: "Whether you think you can or you think you can't, you're right.", author: "Henry Ford" },
+  { text: "The best way to predict the future is to create it.", author: "Peter Drucker" },
+  { text: "What lies behind us and what lies before us are tiny matters compared to what lies within us.", author: "Ralph Waldo Emerson" },
+  { text: "Do not wait for the perfect moment. Take the moment and make it perfect.", author: "Unknown" },
+  { text: "Everything you can imagine is real.", author: "Pablo Picasso" },
+  { text: "The mind is everything. What you think you become.", author: "Buddha" },
+  { text: "Believe you can and you're halfway there.", author: "Theodore Roosevelt" },
+  { text: "Act as if what you do makes a difference. It does.", author: "William James" },
+  { text: "Simplicity is the ultimate sophistication.", author: "Leonardo da Vinci" }
+];
+
+let lastIndex = -1;
+let shownCount = 0;
+
+function showRandomQuote(){
+  let idx;
+  do{
+    idx = Math.floor(Math.random() * quotes.length);
+  } while(idx === lastIndex && quotes.length > 1);
+  lastIndex = idx;
+  shownCount++;
+
+  const textEl = document.getElementById('quoteText');
+  const authorEl = document.getElementById('quoteAuthor');
+  textEl.classList.add('fade-out');
+  authorEl.classList.add('fade-out');
+
+  setTimeout(()=>{
+    textEl.textContent = quotes[idx].text;
+    authorEl.textContent = quotes[idx].author;
+    textEl.classList.remove('fade-out');
+    authorEl.classList.remove('fade-out');
+    document.getElementById('counter').textContent = `Quote ${shownCount}`;
+  }, 180);
+}
+
+document.getElementById('newBtn').addEventListener('click', showRandomQuote);
+showRandomQuote();
+</script>
+</body>
+</html>
